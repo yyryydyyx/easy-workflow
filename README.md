@@ -49,14 +49,14 @@ Tips:作者强烈建议阅读example中代码示例。注释比代码多一向�
 
 ### 下载  
 方法一:  
-在go.mod文件中添加  github.com/Bunny3th/easy-workflow 版本号    
+在go.mod文件中添加  github.com/yyryydyyx/easy-workflow 版本号    
 
 方法二:    
-go get github.com/Bunny3th/easy-workflow@版本号  
+go get github.com/yyryydyyx/easy-workflow@版本号  
 
 ### 开启引擎  
 ```go
-import "github.com/Bunny3th/easy-workflow/workflow/engine"
+import "github.com/yyryydyyx/easy-workflow/workflow/engine"
 
 func DBConnConfig() {
 	engine.DBConnConfigurator.DBConnectString = "数据库账号:密码@tcp(地址:端口)/数据库名称?charset=utf8mb4&parseTime=True&loc=Local"	

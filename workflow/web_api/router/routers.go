@@ -18,7 +18,7 @@ func NewRouter(engine *gin.Engine, ApiBasePath string, ShowSwaggerDoc bool, Swag
 	//swagger信息设置
 	docs.SwaggerInfoeasyworkflow.BasePath = ApiBasePath
 	docs.SwaggerInfoeasyworkflow.Title = "Easy WorkFlow接口说明"
-	docs.SwaggerInfoeasyworkflow.Description = "https://github.com/Bunny3th/easy-workflow"
+	docs.SwaggerInfoeasyworkflow.Description = "https://github.com/yyryydyyx/easy-workflow"
 
 	router := engine.Group(ApiBasePath)
 
