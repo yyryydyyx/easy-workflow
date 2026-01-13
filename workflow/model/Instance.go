@@ -1,6 +1,6 @@
 package model
 
-import . "github.com/Bunny3th/easy-workflow/workflow/database"
+import . "github.com/yyryydyyx/easy-workflow/workflow/database"
 
 type Instance struct {
 	ProcInstID    int       `gorm:"column:id;"`             //流程实例ID

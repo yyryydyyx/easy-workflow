@@ -1,11 +1,11 @@
 package schedule
 
 import (
-	. "github.com/Bunny3th/easy-workflow/workflow/engine"
-	. "github.com/Bunny3th/easy-workflow/workflow/model"
+	. "github.com/yyryydyyx/easy-workflow/workflow/engine"
+	. "github.com/yyryydyyx/easy-workflow/workflow/model"
 )
 
-//这里定义一个任务计划:对于UserID为"-1"的任务做自动通过
+// 这里定义一个任务计划:对于UserID为"-1"的任务做自动通过
 func AutoFinishTask() error {
 	//首先获取所有用户ID为"-1"，且还未完成的任务
 	var tasks []Task
@@ -37,7 +37,7 @@ func AutoFinishTask() error {
 
 		if _, ok := PrevNodeIDs[task.PrevNodeID]; ok {
 			//如果本任务的上一个节点是流程定义中上一个节点，说明上一个节点是做了通过的,否则不可能到我这里,则我也通过
-			err :=TaskPass(task.TaskID, "免审自动通过", "", false)
+			err := TaskPass(task.TaskID, "免审自动通过", "", false)
 			if err != nil {
 				return err
 			}

@@ -1,10 +1,10 @@
 package engine
 
-import . "github.com/Bunny3th/easy-workflow/workflow/database"
+import . "github.com/yyryydyyx/easy-workflow/workflow/database"
 
-//初始化数据库表
+// 初始化数据库表
 func DatabaseInitialize() error {
-	err:=DB.AutoMigrate(&ProcDef{})
+	err := DB.AutoMigrate(&ProcDef{})
 	if err != nil {
 		return err
 	}

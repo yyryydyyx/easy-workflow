@@ -3,17 +3,18 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"github.com/Bunny3th/easy-workflow/workflow/database"
-	. "github.com/Bunny3th/easy-workflow/workflow/model"
+
+	"github.com/yyryydyyx/easy-workflow/workflow/database"
+	. "github.com/yyryydyyx/easy-workflow/workflow/model"
 )
 
-//map [NodeID]Node
+// map [NodeID]Node
 type ProcNodes map[string]Node
 
-//定义流程cache其结构为 map [ProcID]ProcNodes
+// 定义流程cache其结构为 map [ProcID]ProcNodes
 var ProcCache = make(map[int]ProcNodes)
 
-//从缓存中获取流程节点定义
+// 从缓存中获取流程节点定义
 func GetProcCache(ProcessID int) (ProcNodes, error) {
 	if nodes, ok := ProcCache[ProcessID]; ok {
 		return nodes, nil
@@ -31,7 +32,7 @@ func GetProcCache(ProcessID int) (ProcNodes, error) {
 	return ProcCache[ProcessID], nil
 }
 
-//1、流程实例初始化 2、保存实例变量 返回:流程实例ID、开始节点
+// 1、流程实例初始化 2、保存实例变量 返回:流程实例ID、开始节点
 func instanceInit(ProcessID int, BusinessID string, VariableJson string) (int, Node, error) {
 	//获取流程定义(流程中所有node)
 	nodes, err := GetProcCache(ProcessID)
@@ -88,19 +89,19 @@ func instanceInit(ProcessID int, BusinessID string, VariableJson string) (int, N
 	}
 
 	//获取流程起始人
-	users,err:=resolveNodeUser(procInst.ID,StartNode)
-	if err!=nil{
+	users, err := resolveNodeUser(procInst.ID, StartNode)
+	if err != nil {
 		tx.Rollback()
 		return 0, StartNode, err
 	}
 
 	if len(users) < 1 {
 		tx.Rollback()
-		return 0,StartNode, errors.New("未指定处理人，无法处理节点:" + StartNode.NodeName)
+		return 0, StartNode, errors.New("未指定处理人，无法处理节点:" + StartNode.NodeName)
 	}
 
 	//更新起始人到流程实例表
-	re=tx.Model(&database.ProcInst{}).Where("id=?",procInst.ID).Update("starter",users[0])
+	re = tx.Model(&database.ProcInst{}).Where("id=?", procInst.ID).Update("starter", users[0])
 	if re.Error != nil {
 		tx.Rollback()
 		return 0, StartNode, re.Error
@@ -112,7 +113,7 @@ func instanceInit(ProcessID int, BusinessID string, VariableJson string) (int, N
 	return procInst.ID, StartNode, nil
 }
 
-//开始流程实例 返回流程实例ID
+// 开始流程实例 返回流程实例ID
 func InstanceStart(ProcessID int, BusinessID string, Comment string, VariablesJson string) (int, error) {
 	//实例初始化
 	InstanceID, StartNode, err := instanceInit(ProcessID, BusinessID, VariablesJson)
@@ -125,9 +126,9 @@ func InstanceStart(ProcessID int, BusinessID string, Comment string, VariablesJs
 	if err != nil {
 		//需要删除刚才已经建立的实例记录、变量记录、任务记录。
 		//这里已经没有必要对数据库执行做错误判断了，能删就删，删不掉也没多大关系
-		DB.Where("id=?",InstanceID).Delete(database.ProcInst{})
-		DB.Where("proc_inst_id=?",InstanceID).Delete(database.ProcInstVariable{})
-		DB.Where("proc_inst_id=?",InstanceID).Delete(database.ProcTask{})
+		DB.Where("id=?", InstanceID).Delete(database.ProcInst{})
+		DB.Where("proc_inst_id=?", InstanceID).Delete(database.ProcInstVariable{})
+		DB.Where("proc_inst_id=?", InstanceID).Delete(database.ProcTask{})
 
 		return InstanceID, err
 	}
@@ -135,11 +136,11 @@ func InstanceStart(ProcessID int, BusinessID string, Comment string, VariablesJs
 	return InstanceID, nil
 }
 
-//撤销流程实例 参数说明:
-//1、InstanceID 实例ID
-//2、Force 是否强制撤销，若为false,则只有流程回到发起人这里才能撤销
-//3、撤销发起人用户ID
-func InstanceRevoke(ProcessInstanceID int, Force bool,RevokeUserID string) error {
+// 撤销流程实例 参数说明:
+// 1、InstanceID 实例ID
+// 2、Force 是否强制撤销，若为false,则只有流程回到发起人这里才能撤销
+// 3、撤销发起人用户ID
+func InstanceRevoke(ProcessInstanceID int, Force bool, RevokeUserID string) error {
 	if !Force {
 		//这段SQL判断是否当前Node就是开始Node
 		sql := "SELECT a.id FROM proc_inst a " +
@@ -157,18 +158,18 @@ func InstanceRevoke(ProcessInstanceID int, Force bool,RevokeUserID string) error
 
 	//-----------------------------执行流程撤销事件 start-----------------------------
 	//流程ID
-	ProcID,err:=GetProcessIDByInstanceID(ProcessInstanceID)
-	if err!=nil{
+	ProcID, err := GetProcessIDByInstanceID(ProcessInstanceID)
+	if err != nil {
 		return err
 	}
 	//流程定义
-	process,err:=GetProcessDefine(ProcID)
-	if err!=nil{
+	process, err := GetProcessDefine(ProcID)
+	if err != nil {
 		return err
 	}
 
-	err=RunProcEvents(process.RevokeEvents,ProcessInstanceID,RevokeUserID)
-	if err!=nil{
+	err = RunProcEvents(process.RevokeEvents, ProcessInstanceID, RevokeUserID)
+	if err != nil {
 		return err
 	}
 	//-----------------------------执行流程撤销事件 end-----------------------------
@@ -178,7 +179,7 @@ func InstanceRevoke(ProcessInstanceID int, Force bool,RevokeUserID string) error
 	return err
 }
 
-//流程实例变量存入数据库
+// 流程实例变量存入数据库
 func InstanceVariablesSave(ProcessInstanceID int, VariablesJson string) error {
 	//获取变量数组
 	var variables []Variable
@@ -216,11 +217,11 @@ func InstanceVariablesSave(ProcessInstanceID int, VariablesJson string) error {
 	return nil
 }
 
-//获取流程实例信息
+// 获取流程实例信息
 func GetInstanceInfo(ProcessInstanceID int) (Instance, error) {
 	var procInst Instance
 	//历史信息也要兼顾
-	sql:="WITH tmp_procinst AS\n" +
+	sql := "WITH tmp_procinst AS\n" +
 		"(SELECT id,proc_id,proc_version,business_id,starter,current_node_id,\n" +
 		"create_time,`status`\n" +
 		"FROM proc_inst \n" +
@@ -236,7 +237,7 @@ func GetInstanceInfo(ProcessInstanceID int) (Instance, error) {
 		"FROM  tmp_procinst a\n" +
 		"LEFT JOIN proc_def b ON a.proc_id=b.id"
 
-	_, err := ExecSQL(sql, &procInst, ProcessInstanceID,ProcessInstanceID)
+	_, err := ExecSQL(sql, &procInst, ProcessInstanceID, ProcessInstanceID)
 	if err != nil {
 		return procInst, err
 	}
@@ -244,15 +245,15 @@ func GetInstanceInfo(ProcessInstanceID int) (Instance, error) {
 	return procInst, nil
 }
 
-//获取起始人为特定用户的流程实例。参数说明：
-//UserID:用户ID 传入空则获取所有用户的流程实例
-//ProcessName:指定流程名称,传入""则为全部
-//StartIndex:分页用,开始index
-//MaxRows:分页用,最大返回行数
-func GetInstanceStartByUser(UserID string,ProcessName string,StartIndex int,MaxRows int) ([]Instance,error){
+// 获取起始人为特定用户的流程实例。参数说明：
+// UserID:用户ID 传入空则获取所有用户的流程实例
+// ProcessName:指定流程名称,传入""则为全部
+// StartIndex:分页用,开始index
+// MaxRows:分页用,最大返回行数
+func GetInstanceStartByUser(UserID string, ProcessName string, StartIndex int, MaxRows int) ([]Instance, error) {
 	var procInsts []Instance
 	//历史信息也要兼顾
-	sql:="WITH tmp_procinst AS\n " +
+	sql := "WITH tmp_procinst AS\n " +
 		"(SELECT id,proc_id,proc_version,business_id,starter,current_node_id,\n" +
 		"create_time,`status`\n" +
 		"FROM proc_inst \n" +
@@ -267,10 +268,10 @@ func GetInstanceStartByUser(UserID string,ProcessName string,StartIndex int,MaxR
 		"a.starter,a.current_node_id,a.create_time,a.`status`,b.name\n" +
 		"FROM tmp_procinst a\n" +
 		"JOIN proc_def b ON a.proc_id=b.id\n" +
-		"WHERE CASE WHEN ''=@procname THEN TRUE ELSE b.name=@procname END\n"+
+		"WHERE CASE WHEN ''=@procname THEN TRUE ELSE b.name=@procname END\n" +
 		"ORDER BY a.id limit @index,@rows"
 
-	condition:=map[string]interface{}{"userid":UserID,"procname":ProcessName,"index":StartIndex,"rows":MaxRows}
+	condition := map[string]interface{}{"userid": UserID, "procname": ProcessName, "index": StartIndex, "rows": MaxRows}
 
 	_, err := ExecSQL(sql, &procInsts, condition)
 	if err != nil {

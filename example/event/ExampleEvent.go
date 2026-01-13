@@ -1,13 +1,14 @@
 package event
 
 import (
-	"github.com/Bunny3th/easy-workflow/workflow/database"
-	. "github.com/Bunny3th/easy-workflow/workflow/engine"
-	. "github.com/Bunny3th/easy-workflow/workflow/model"
 	"log"
+
+	"github.com/yyryydyyx/easy-workflow/workflow/database"
+	. "github.com/yyryydyyx/easy-workflow/workflow/engine"
+	. "github.com/yyryydyyx/easy-workflow/workflow/model"
 )
 
-//这里创建了一个角色-用户的人员库，用来模拟数据库中存储的角色-用户对应关系
+// 这里创建了一个角色-用户的人员库，用来模拟数据库中存储的角色-用户对应关系
 var RoleUser = make(map[string][]string)
 
 func init() {
@@ -18,10 +19,10 @@ func init() {
 	RoleUser["副总"] = []string{"赵总", "钱总", "孙总"}
 }
 
-//示例事件
+// 示例事件
 type MyEvent struct{}
 
-//节点结束事件
+// 节点结束事件
 func (e *MyEvent) MyEvent_End(ProcessInstanceID int, CurrentNode *Node, PrevNode Node) error {
 	//可以做一些处理，比如通知流程开始人，节点到了哪个步骤
 	processName, err := GetProcessNameByInstanceID(ProcessInstanceID)
@@ -32,7 +33,7 @@ func (e *MyEvent) MyEvent_End(ProcessInstanceID int, CurrentNode *Node, PrevNode
 	return nil
 }
 
-//通知
+// 通知
 func (e *MyEvent) MyEvent_Notify(ProcessInstanceID int, CurrentNode *Node, PrevNode Node) error {
 	processName, err := GetProcessNameByInstanceID(ProcessInstanceID)
 	if err != nil {
@@ -55,7 +56,7 @@ func (e *MyEvent) MyEvent_Notify(ProcessInstanceID int, CurrentNode *Node, PrevN
 	return nil
 }
 
-//解析角色
+// 解析角色
 func (e *MyEvent) MyEvent_ResolveRoles(ProcessInstanceID int, CurrentNode *Node, PrevNode Node) error {
 	processName, err := GetProcessNameByInstanceID(ProcessInstanceID)
 	if err != nil {
@@ -71,9 +72,9 @@ func (e *MyEvent) MyEvent_ResolveRoles(ProcessInstanceID int, CurrentNode *Node,
 	return nil
 }
 
-//任务事件
-//在示例流程中，"副总审批"是一个会签节点，需要3个副总全部通过，节点才算通过
-//现在通过任务事件改变会签通过人数，设为只要2人通过，即算通过
+// 任务事件
+// 在示例流程中，"副总审批"是一个会签节点，需要3个副总全部通过，节点才算通过
+// 现在通过任务事件改变会签通过人数，设为只要2人通过，即算通过
 func (e *MyEvent) MyEvent_TaskForceNodePass(TaskID int, CurrentNode *Node, PrevNode Node) error {
 	taskInfo, err := GetTaskInfo(TaskID)
 	if err != nil {
@@ -107,7 +108,7 @@ func (e *MyEvent) MyEvent_TaskForceNodePass(TaskID int, CurrentNode *Node, PrevN
 		//代表他们通过
 		result = tx.Model(&database.ProcTask{}).
 			Where("proc_inst_id=? AND node_id=? AND batch_code=? AND is_finished=0", taskInfo.ProcInstID, taskInfo.NodeID, taskInfo.BatchCode).
-			Updates(database.ProcTask{Comment:"通过人数已满2人，系统自动代表你通过" ,IsFinished: 1, Status: 1})
+			Updates(database.ProcTask{Comment: "通过人数已满2人，系统自动代表你通过", IsFinished: 1, Status: 1})
 		if result.Error != nil {
 			return result.Error
 		}

@@ -2,8 +2,9 @@ package engine
 
 import (
 	"fmt"
-	. "github.com/Bunny3th/easy-workflow/workflow/model"
 	"reflect"
+
+	. "github.com/yyryydyyx/easy-workflow/workflow/model"
 )
 
 type method struct {
@@ -11,14 +12,14 @@ type method struct {
 	M reflect.Method //方法
 }
 
-//事件池，所有的事件都会在流程引擎启动的时候注册到这里
+// 事件池，所有的事件都会在流程引擎启动的时候注册到这里
 var EventPool = make(map[string]method)
 
-//事件出错，则可能导致流程无法运行下去,在这里添加选项，是否忽略事件出错，让流程继续
+// 事件出错，则可能导致流程无法运行下去,在这里添加选项，是否忽略事件出错，让流程继续
 var IgnoreEventError bool
 
-//注册一个struct中的所有func
-//注意,此时不会验证事件方法参数是否正确,因为此时不知道事件到底是“节点事件”还是“流程事件”
+// 注册一个struct中的所有func
+// 注意,此时不会验证事件方法参数是否正确,因为此时不知道事件到底是“节点事件”还是“流程事件”
 func RegisterEvents(Struct any) {
 	StructValue := reflect.ValueOf(Struct)
 	StructType := StructValue.Type()
@@ -30,8 +31,8 @@ func RegisterEvents(Struct any) {
 	}
 }
 
-//验证流程事件(目前只有流程撤销事件)参数是否正确
-//流程撤销事件  func签名必须是func(struct *interface{}, ProcessInstanceID int,RevokeUserID string) error
+// 验证流程事件(目前只有流程撤销事件)参数是否正确
+// 流程撤销事件  func签名必须是func(struct *interface{}, ProcessInstanceID int,RevokeUserID string) error
 func verifyProcEventParameters(m reflect.Method) error {
 	//自定义函数必须是3个参数，参数0：*struct{} 1:int 2:String
 	if m.Type.NumIn() != 3 || m.Type.NumOut() != 1 {
@@ -52,9 +53,9 @@ func verifyProcEventParameters(m reflect.Method) error {
 	return nil
 }
 
-//验证节点事件(1、节点开始  2、节点结束 3、任务结束)参数是否正确
-//1、节点开始、结束事件     func签名必须是func(struct *interface{}, ProcessInstanceID int, CurrentNode *Node, PrevNode Node) error
-//2、任务完成事件          func签名必须是func(struct *interface{}, TaskID int, CurrentNode *Node, PrevNode Node) error
+// 验证节点事件(1、节点开始  2、节点结束 3、任务结束)参数是否正确
+// 1、节点开始、结束事件     func签名必须是func(struct *interface{}, ProcessInstanceID int, CurrentNode *Node, PrevNode Node) error
+// 2、任务完成事件          func签名必须是func(struct *interface{}, TaskID int, CurrentNode *Node, PrevNode Node) error
 func verifyNodeEventParameters(m reflect.Method) error {
 	//自定义函数必须是4个参数，参数0：*struct{} 1:int 2:Node 3:Node
 	if m.Type.NumIn() != 4 || m.Type.NumOut() != 1 {
@@ -79,9 +80,9 @@ func verifyNodeEventParameters(m reflect.Method) error {
 	return nil
 }
 
-//检查流程:
-//1、是否注册
-//2、参数是否正确
+// 检查流程:
+// 1、是否注册
+// 2、参数是否正确
 func VerifyEvents(ProcessID int, Nodes ProcNodes) error {
 	//获取流程定义
 	process, err := GetProcessDefine(ProcessID)
@@ -125,7 +126,7 @@ func VerifyEvents(ProcessID int, Nodes ProcNodes) error {
 	return nil
 }
 
-//运行节点事件(1、节点开始  2、节点结束 3、任务结束)
+// 运行节点事件(1、节点开始  2、节点结束 3、任务结束)
 func RunNodeEvents(EventNames []string, ID int, CurrentNode *Node, PrevNode Node) error {
 	for _, e := range EventNames {
 		//log.Printf("正在处理节点[%s]中事件[%s]", CurrentNode.NodeName, e)
@@ -158,7 +159,7 @@ func RunNodeEvents(EventNames []string, ID int, CurrentNode *Node, PrevNode Node
 	return nil
 }
 
-////运行流程事件(目前只有撤销事件)
+// //运行流程事件(目前只有撤销事件)
 func RunProcEvents(EventNames []string, ProcessInstanceID int, RevokeUserID string) error {
 	for _, e := range EventNames {
 		//log.Printf("正在处理节点[%s]中事件[%s]", CurrentNode.NodeName, e)
